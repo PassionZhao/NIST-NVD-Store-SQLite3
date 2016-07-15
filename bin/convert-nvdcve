@@ -158,29 +158,44 @@ sub process_nvd_file {
 
     while ( my $line = <$nvdcve_fd> ) {
 
-        if ( $line =~ /(^.*?)<entry/ ) {
-            my $tail = $1;
-            $content .= $tail;
-
-            if ($header) {
+        # Get the nvd header first
+        if ( !$header ) {
+    
+            if ( $line =~ /(^.*?)<entry/ ) {
+                my $tail = $1;
+                $content .= $tail;
+                $header = $content;
+                $line =~ s/^$tail//;
+                $content = $line;
+            }
+            else {
+                $content .= $line;
+            }
+        }
+        else {
+            # Match each CVE entry
+            if ( $line =~ /(^.*?<\/entry>)/ ) {
+                my $tail = $1;
+    
+                $content .= $tail;
+    
                 $entry_body = $content;
                 my $xml_string = $header . $entry_body . $footer;
-                print '.' if ++$entry_count % 100 == 0;
-                my %entry = process_nvd($xml_string);
-
-                while ( my ( $cve_id, $entry ) = each %entry ) {
-                    $NVD_Entry_HASH->{$cve_id} = $entry;
-                }
-
-            } else {
-                $header = $content;
+                    print '.' if ++$entry_count % 100 == 0;
+                    my %entry = process_nvd($xml_string);
+    
+                    while ( my ( $cve_id, $entry ) = each %entry ) {
+                        $NVD_Entry_HASH->{$cve_id} = $entry;
+                    }
+    
+                $line =~ s/^$tail//;
+                $content = $line;
+    
             }
-
-            $line =~ s/^$tail//;
-            $content = $line;
-
-        } else {
-            $content .= $line;
+            else {
+                $content .= $line;
+            }
+    
         }
     }
 
