@@ -760,10 +760,11 @@ sub put_cpe {
     my %cpe_urn = map { $_ => 1 } @$cpe_urn;
     my $query   = 'SELECT id,urn FROM cpe';
     my $sth     = $self->{sqlite}->prepare($query);
+    $sth->execute();
 
     while ( my $row = $sth->fetchrow_hashref() ) {
-        delete $cpe_urn{ $row->{cpe_urn} }
-          if exists $cpe_urn{ $row->{cpe_urn} };
+        delete $cpe_urn{ $row->{urn} }
+          if exists $cpe_urn{ $row->{urn} };
     }
 
     my @params;
