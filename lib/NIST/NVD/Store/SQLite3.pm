@@ -677,6 +677,9 @@ sub update_websec_idx_cpe {
           . ")" );
     my $score_sth = $dbh->prepare($q);
 
+    $q = "DELETE FROM cpe_websec_score";
+    my $websec_init_sth = $dbh->prepare($q);
+
     $cpe_sth->execute();
 
     my @idx_args = ();
@@ -739,6 +742,7 @@ sub update_websec_idx_cpe {
     }
 
     $self->{sqlite}->do("BEGIN IMMEDIATE TRANSACTION");
+    $websec_init_sth->execute();
     $score_sth->execute(@$_)       foreach @websec_score;
     $cwe_idx_cpe_sth->execute(@$_) foreach @idx_args;
     $self->{sqlite}->commit();
